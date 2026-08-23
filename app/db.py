@@ -19,3 +19,10 @@ class chunk(Base):
     page_number=Column(Integer,nullable=True)
     content=Column(Text,nullable=False)
     embedding=Column(Vector(EMBEDDING_DIM),nullable=False)
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
+
+if __name__=="__main__":
+    init_db()
+    print("Tables created.")
