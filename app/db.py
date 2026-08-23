@@ -11,7 +11,7 @@ Base = declarative_base()
 
 EMBEDDING_DIM=384
 
-class chunk(Base):
+class Chunk(Base):
     __tablename__="chunks"
     id=Column(Integer,primary_key=True)
     source_file=Column(String,nullable=False)
