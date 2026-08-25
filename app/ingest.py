@@ -34,9 +34,37 @@ def split_into_sections(text:str):
         sections.append((current_title,"\n".join(current_lines)))
     return sections
 
+def fixed_size_chunks(text: str,max_words=500,overlap=50):
+    words=text.split()
+    if len(words)<=max_words:
+        return [text]
+    chunks=[]
+    start=0
+    while start<len(words):
+        end=start+max_words
+        chunks.append(" ".join(words[start:end]))
+        start=end-overlap
+    return chunks
+
+def chunk_document(pdf_path:str,source_file:str):
+    results=[]
+    for page_number,page_text in extract_pages(pdf_path):
+        for section_title,section_text in split_into_sections(page_text):
+            if not section_text.strip():
+                continue
+            for sub_chunk in fixed_size_chunks(section_text):
+                results.append({
+                    "source_file":source_file,
+                    "page_number":page_number,
+                    "section_title":section_title,
+                    "content":sub_chunk.strip(),
+                })
+    return results
+
 if __name__ == "__main__":
     import sys
-    for page_num, text in extract_pages(sys.argv[1]):
-        print(f"=== Page {page_num} ===")
-        for title, body in split_into_sections(text):
-            print(f"  [{title}] -> {body[:80]}...")
+    chunks = chunk_document(sys.argv[1], source_file=sys.argv[1].split("/")[-1])
+    print(f"Total chunks: {len(chunks)}\n")
+    for c in chunks:
+        print(f"[{c['source_file']} | page {c['page_number']} | {c['section_title']}]")
+        print(f"  {c['content'][:80]}...\n")
