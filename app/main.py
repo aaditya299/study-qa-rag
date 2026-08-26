@@ -1,5 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,UploadFile,File
 from db import init_db
+from ingest import ingest_pdf
+import shutil
+import tempfile
+import os
+
 app=FastAPI(title="Study Material Q&A Assistant")
 
 @app.on_event("startup")
@@ -10,3 +15,13 @@ def on_startup():
 async def root():
     return {"status": "running"}
 
+@app.post("/upload")
+async def upload_pdf(file: UploadFile=File(...)):
+    with tempfile.NamedTemporaryFile(delete=False,suffix=".pdf") as tmp:
+        shutil.copyfileobj(file.file,tmp)
+        tmp_path=tmp.name
+    try:
+        ingest_pdf(tmp_path,source_file=file.filename)
+    finally:
+        os.remove(tmp_path)
+    return {"status":"ok","filename":file.filename}

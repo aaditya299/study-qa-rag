@@ -79,6 +79,11 @@ def embed_and_store(chunks:list[dict]):
     finally:
         db.close()
 
+def ingest_pdf(pdf_path: str,source_file:str=None):
+    source_file=source_file or pdf_path.split("/")[-1]
+    chunks=chunk_document(pdf_path,source_file)
+    embed_and_store(chunks)
+
 if __name__ == "__main__":
     import sys
     init_db()
