@@ -61,10 +61,26 @@ def chunk_document(pdf_path:str,source_file:str):
                 })
     return results
 
+def embed_and_store(chunks:list[dict]):
+    db=SessionLocal()
+    try:
+        texts=[c["content"] for c in chunks]
+        embeddings=model.encode(texts,show_progress_bar=True)
+        for chunk_data,embedding in zip(chunks,embeddings):
+            db.add(Chunk(
+                source_file=chunk_data["source_file"],
+                section_title=chunk_data["section_title"],
+                page_number=chunk_data['page_number'],
+                content=chunk_data["content"],
+                embedding=embedding.tolist(),
+            ))
+        db.commit()
+        print(f"Stored {len(chunks)} chunks.")
+    finally:
+        db.close()
+
 if __name__ == "__main__":
     import sys
+    init_db()
     chunks = chunk_document(sys.argv[1], source_file=sys.argv[1].split("/")[-1])
-    print(f"Total chunks: {len(chunks)}\n")
-    for c in chunks:
-        print(f"[{c['source_file']} | page {c['page_number']} | {c['section_title']}]")
-        print(f"  {c['content'][:80]}...\n")
+    embed_and_store(chunks)
