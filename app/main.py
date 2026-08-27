@@ -1,11 +1,17 @@
 from fastapi import FastAPI,UploadFile,File
 from db import init_db
 from ingest import ingest_pdf
+from pydantic import BaseModel
+from retrieve import answer_question
 import shutil
 import tempfile
 import os
 
 app=FastAPI(title="Study Material Q&A Assistant")
+
+class AskRequest(BaseModel):
+    question:str
+    top_k:int =5
 
 @app.on_event("startup")
 def on_startup():
@@ -25,3 +31,8 @@ async def upload_pdf(file: UploadFile=File(...)):
     finally:
         os.remove(tmp_path)
     return {"status":"ok","filename":file.filename}
+
+@app.post("/ask")
+async def ask (request:AskRequest):
+    result=answer_question(request.question,top_k=request.top_k)
+    return result
