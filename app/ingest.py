@@ -1,4 +1,5 @@
 import pymupdf
+from db import Chunk,SessionLocal,init_db,delete_chunks_for_file
 from sentence_transformers import SentenceTransformer
 from db import Chunk,SessionLocal,init_db
 
@@ -81,6 +82,7 @@ def embed_and_store(chunks:list[dict]):
 
 def ingest_pdf(pdf_path: str,source_file:str=None):
     source_file=source_file or pdf_path.split("/")[-1]
+    delete_chunks_for_file(source_file)
     chunks=chunk_document(pdf_path,source_file)
     embed_and_store(chunks)
 

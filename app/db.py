@@ -23,6 +23,14 @@ class Chunk(Base):
 def init_db():
     Base.metadata.create_all(bind=engine)
 
+def delete_chunks_for_file(source_file:str):
+    db=SessionLocal()
+    try:
+        db.query(Chunk).filter(Chunk.source_file==source_file).delete()
+        db.commit()
+    finally:
+        db.close()
+        
 if __name__=="__main__":
     init_db()
     print("Tables created.")
